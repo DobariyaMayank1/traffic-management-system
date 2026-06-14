@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicle Counting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 30px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      padding: 30px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .lane-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 4px solid red;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .count-display {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      padding-left: 10px;
+    }
+
+    .dot {
+      width: 22px;
+      height: 22px;
+      background-color: red;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .time {
+      font-size: 16px;
+      color: #555;
+      margin-left: auto;
+      padding-right: 10px;
+    }
+
+    .video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Vehicle Counting Dashboard</h1>
+
+  <div class="grid-container">
+    <div class="lane-section">
+      <div class="count-display">
+        <span class="dot"></span>
+        <span id="lane1-count-label">Lane 1 Count:</span>
+        <span id="lane1-count-number">Loading...</span>
+        <span class="time">Time: 12s</span>
+      </div>
+      <img class="video" src="/video_feed/lane1" />
+    </div>
+    <div class="lane-section">
+      <div class="count-display">
+        <span class="dot"></span>
+        <span id="lane2-count-label">Lane 2 Count:</span>
+        <span id="lane2-count-number">Loading...</span>
+        <span class="time">Time: 12s</span>
+      </div>
+      <img class="video" src="/video_feed/lane2" />
+    </div>
+    <div class="lane-section">
+      <div class="count-display">
+        <span class="dot"></span>
+        <span id="lane3-count-label">Lane 3 Count:</span>
+        <span id="lane3-count-number">Loading...</span>
+        <span class="time">Time: 12s</span>
+      </div>
+      <img class="video" src="/video_feed/lane3" />
+    </div>
+    <div class="lane-section">
+      <div class="count-display">
+        <span class="dot"></span>
+        <span id="lane4-count-label">Lane 4 Count:</span>
+        <span id="lane4-count-number">Loading...</span>
+        <span class="time">Time: 12s</span>
+      </div>
+      <img class="video" src="/video_feed/lane4" />
+    </div>
+  </div>
+
+  <script>
+    function updateCount() {
+      fetch('/get_count')
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('lane1-count-number').innerText = data.lane1;
+          document.getElementById('lane2-count-number').innerText = data.lane2;
+          document.getElementById('lane3-count-number').innerText = data.lane3;
+          document.getElementById('lane4-count-number').innerText = data.lane4;
+        })
+        .catch(error => console.error('Error fetching count:', error));
+    }
+
+    setInterval(updateCount, 1000);
+  </script>
+</body>
+</html>

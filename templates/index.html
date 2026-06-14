@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicle Counting</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 30px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+      padding: 30px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .lane-section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 4px solid red;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: border-color 0.3s;
+    }
+
+    .lane-section.green {
+      border-color: green;
+    }
+
+    .count-display {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      padding-left: 10px;
+    }
+
+    .dot {
+      width: 22px;
+      height: 22px;
+      background-color: red;
+      border-radius: 50%;
+      display: inline-block;
+      transition: background-color 0.3s;
+    }
+
+    .dot.green {
+      background-color: green;
+    }
+
+    .time {
+      font-size: 16px;
+      color: #555;
+      margin-left: auto;
+      padding-right: 10px;
+    }
+
+    .video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Vehicle Counting Dashboard</h1>
+
+  <div class="grid-container">
+    <div class="lane-section" id="lane1-section">
+      <div class="count-display">
+        <span class="dot" id="lane1-dot"></span>
+        <span id="lane1-count-label">Lane 1 Count:</span>
+        <span id="lane1-count-number">Loading...</span>
+        <span class="time" id="lane1-time">Time: 0s</span>
+      </div>
+      <img class="video" src="/video_feed/lane1" />
+    </div>
+    <div class="lane-section" id="lane2-section">
+      <div class="count-display">
+        <span class="dot" id="lane2-dot"></span>
+        <span id="lane2-count-label">Lane 2 Count:</span>
+        <span id="lane2-count-number">Loading...</span>
+        <span class="time" id="lane2-time">Time: 0s</span>
+      </div>
+      <img class="video" src="/video_feed/lane2" />
+    </div>
+    <div class="lane-section" id="lane3-section">
+      <div class="count-display">
+        <span class="dot" id="lane3-dot"></span>
+        <span id="lane3-count-label">Lane 3 Count:</span>
+        <span id="lane3-count-number">Loading...</span>
+        <span class="time" id="lane3-time">Time: 0s</span>
+      </div>
+      <img class="video" src="/video_feed/lane3" />
+    </div>
+    <div class="lane-section" id="lane4-section">
+      <div class="count-display">
+        <span class="dot" id="lane4-dot"></span>
+        <span id="lane4-count-label">Lane 4 Count:</span>
+        <span id="lane4-count-number">Loading...</span>
+        <span class="time" id="lane4-time">Time: 0s</span>
+      </div>
+      <img class="video" src="/video_feed/lane4" />
+    </div>
+  </div>
+
+
+  <footer>
+    <div class="credit">
+      <h1>CREATED BY:</h1>
+      <h3>Mayank Dobariya (220760116013)</h3>
+      <h3>Abhi Kalathiya (220760116027)</h3>
+      <h3>Harsh Bhalala (220760116002)</h3>
+      <h3>Dhruv Gondaliya (220760116022)</h3>
+      <h3>Meet Dudhat (220760116014)</h3>
+    </div>
+  </footer>
+
+<script>
+  let lanes = {
+    1: { counted: 0, passed: 0 },
+    2: { counted: 0, passed: 0 },
+    3: { counted: 0, passed: 0 },
+    4: { counted: 0, passed: 0 }
+  };
+
+  let currentLane = null;
+  let remainingTime = 0;
+
+  function getTimeForCount(count) {
+    if (count <= 10) return 10;
+    if (count <= 20) return 15;
+    if (count <= 30) return 20;
+    if (count <= 40) return 25;
+    return 30;
+  }
+
+  function updateLaneVisuals(activeLane) {
+    for (let i = 1; i <= 4; i++) {
+      const section = document.getElementById(`lane${i}-section`);
+      const dot = document.getElementById(`lane${i}-dot`);
+      if (i === activeLane) {
+        section.classList.add('green');
+        dot.classList.add('green');
+      } else {
+        section.classList.remove('green');
+        dot.classList.remove('green');
+      }
+    }
+  }
+
+  function updateCountsUI() {
+    for (let i = 1; i <= 4; i++) {
+      const unpassed = Math.max(0, lanes[i].counted - lanes[i].passed);
+      document.getElementById(`lane${i}-count-number`).innerText = unpassed;
+    }
+  }
+
+  function updateTimeUI() {
+    for (let i = 1; i <= 4; i++) {
+      const timeElem = document.getElementById(`lane${i}-time`);
+      if (i === currentLane) {
+        timeElem.innerText = `Time: ${remainingTime}s`;
+      } else {
+        timeElem.innerText = 'Time: 0s';
+      }
+    }
+  }
+
+  function pickNextLane() {
+    const sorted = Object.entries(lanes)
+      .map(([lane, data]) => [parseInt(lane), data.counted - data.passed])
+      .sort((a, b) => b[1] - a[1]);
+
+    for (let [lane, unpassed] of sorted) {
+      if (unpassed > 0) {
+        return lane;
+      }
+    }
+    return null;
+  }
+
+  function switchLane() {
+    if (currentLane !== null) {
+      // Mark all remaining vehicles in the current lane as passed
+      lanes[currentLane].passed = lanes[currentLane].counted;
+    }
+
+    // Pick next lane with remaining vehicles
+    currentLane = pickNextLane();
+    if (currentLane !== null) {
+      const unpassed = lanes[currentLane].counted - lanes[currentLane].passed;
+      remainingTime = getTimeForCount(unpassed);
+    } else {
+      remainingTime = 0;
+    }
+
+    updateLaneVisuals(currentLane);
+    updateCountsUI();
+    updateTimeUI();
+  }
+
+  function update() {
+    fetch('/get_count')
+      .then(response => response.json())
+      .then(data => {
+        for (let i = 1; i <= 4; i++) {
+          lanes[i].counted = data[`lane${i}`];
+        }
+
+        if (remainingTime > 0) {
+          remainingTime -= 1;
+          if (remainingTime <= 0) {
+            switchLane();
+          }
+        } else {
+          switchLane();
+        }
+
+        updateCountsUI();
+        updateTimeUI();
+      })
+      .catch(error => {
+        console.error('Error fetching counts:', error);
+      });
+  }
+
+  setInterval(update, 1000);
+</script>
+
+</body>
+</html>
