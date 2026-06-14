@@ -20,6 +20,8 @@ app = Flask(__name__)
 
 # Load YOLOv8 model
 model = YOLO('Yolo-Weights/yolov8n.pt')
+# model = YOLO('Yolo-Weights/yolov8m.pt')
+# model = YOLO('Yolo-Weights/yolov8l.pt')
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
               "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
