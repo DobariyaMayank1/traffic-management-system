@@ -19,7 +19,7 @@ import os
 app = Flask(__name__)
 
 # Load YOLOv8 model
-model = YOLO('../Yolo-Weights/yolov8n.pt')
+model = YOLO('Yolo-Weights/yolov8n.pt')
 classNames = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
               "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
               "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
@@ -44,8 +44,12 @@ limits = {
 
 # first 
 def generate_frames(lane, video_path, mask_path):
+    print(f"Video: {video_path}")
+    print(f"Mask: {mask_path}")
     cap = cv2.VideoCapture(video_path)
+    print("Video opened:", cap.isOpened())
     mask = cv2.imread(mask_path)
+    print("Mask loaded:", mask is not None)
     totalCount = []
 
     while True:
@@ -115,7 +119,7 @@ def get_count():
 @app.route('/video_feed/<lane>')
 
 def video_feed(lane):
-    video_path = f"../Videos/{lane}.mp4"
+    video_path = f"Videos/{lane}.mp4"
     mask_path = f"mask{int(lane[-1])}.png"
     return Response(generate_frames(lane, video_path, mask_path),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
